@@ -29,10 +29,19 @@ async def login(session, url):
         return await resp.text()
 
 
+async def build(session, url):
+    params = {'a': '14', 'c': '631a60'}
+
+    async with session.get(url, params=params) as resp:
+        return await resp.text()
+
+
 async def main():
     async with aiohttp.ClientSession() as session:
         html = await login(session, LOGIN_URL)
-        print(html)
+        html = await build(session, LOGIN_URL)
+        with open('login.html', 'w', encoding='utf-8') as f:
+            f.write(html)
 
 
 loop = asyncio.get_event_loop()
