@@ -1,6 +1,7 @@
 import os
 import re
 import requests
+import sys
 
 from bs4 import BeautifulSoup
 
@@ -24,18 +25,32 @@ def login(session, url):
     return resp.text
 
 
-def parse_field(parser):
+def parse_fields(parser):
 
     # Last link leads to town, so delete its
-    areas = parser.find_all('area')[:-1]
+    fields = parser.find_all('area')[:-1]
 
     # Level of buildings and related links in village
-    areas = {area.get('alt'): area.get('href') for area in areas}
+    fields = {field.get('alt'): field.get('href') for field in fields}
 
-    return areas
+    return fields
 
 
-def parse_resouce(id, parser):
+def select_field_to_build(fields, resource):
+    """Select field where will be built new resource-field"""
+    lowest_level = sys.maxsize
+    field_link = None
+
+    for field, link in fields.items():
+        fields_level = int(field[-1])
+
+        if (resource in field.lower()) and (fields_level < lowest_level):
+            field_link = link
+
+    return SERVER_URL + field_link
+
+
+def parse_resource(id, parser):
     """Takes id of resource-tag in html and return amount of this resource"""
     pattern = re.compile(r'\d+')
 
@@ -49,10 +64,10 @@ def parse_resouce(id, parser):
 
 
 def parse_resources_amount(parser):
-    lumber = parse_resouce('l1', parser)
-    clay = parse_resouce('l2', parser)
-    iron = parse_resouce('l3', parser)
-    crop = parse_resouce('l4', parser)
+    lumber = parse_resource('l1', parser)
+    clay = parse_resource('l2', parser)
+    iron = parse_resource('l3', parser)
+    crop = parse_resource('l4', parser)
 
     resources_amount = {'lumber': lumber, 'clay': clay,
                         'iron': iron, 'crop': crop}
@@ -66,6 +81,9 @@ def main():
 
         resources_amount = parse_resources_amount(parser)
         minimal_resource = min(resources_amount, key=resources_amount.get)
+        fields = parse_fields(parser)
+
+        print(select_field_to_build(fields, minimal_resource))
 
 
 if __name__ == '__main__':
