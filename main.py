@@ -1,4 +1,5 @@
 import os
+import re
 import requests
 
 from bs4 import BeautifulSoup
@@ -33,20 +34,29 @@ def parse_field(parser):
 
     return areas
 
+
+def parse_resouce(id, parser):
+    """Takes id of resource-tag in html and return amount of this resource"""
+    pattern = re.compile(r'\d+')
+
+    resource = parser.find(id=id).text
+    resource = resource.replace('.', '')
+
+    amount = pattern.search(resource)
+    amount = amount.group(0)
+
+    return amount
+
+
 def parse_resources_amount(parser):
-    lumber = parser.find(id='stockBarResource1')
-    clay = parser.find(id='stockBarResource2')
-    iron = parser.find(id='stockBarResource3')
-    crop = parser.find(id='stockBarResource4')
+    lumber = parse_resouce('l1', parser)
+    clay = parse_resouce('l2', parser)
+    iron = parse_resouce('l3', parser)
+    crop = parse_resouce('l4', parser)
 
     resources_amount = {'lumber': lumber, 'clay': clay,
                         'iron': iron, 'crop': crop}
     return resources_amount
-
-
-def buildings(session, url):
-    resp = session.get(url)
-    return resp.text
 
 
 def main():
@@ -54,9 +64,8 @@ def main():
         html = login(session, LOGIN_URL)
         parser = BeautifulSoup(html, 'html.parser')
 
-
-
-        print(areas)
+        resources_amount = parse_resources_amount(parser)
+        minimal_resource = min(resources_amount, key=resources_amount.get)
 
 
 if __name__ == '__main__':
