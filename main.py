@@ -23,10 +23,25 @@ def login(session, url):
     return resp.text
 
 
-def parse_field(html):
-    parser = BeautifulSoup(html, 'html.parser')
-    resource_level = parser.find(class_='level')
-    return resource_level
+def parse_field(parser):
+
+    # Last link leads to town, so delete its
+    areas = parser.find_all('area')[:-1]
+
+    # Level of buildings and related links in village
+    areas = {area.get('alt'): area.get('href') for area in areas}
+
+    return areas
+
+def parse_resources_amount(parser):
+    lumber = parser.find(id='stockBarResource1')
+    clay = parser.find(id='stockBarResource2')
+    iron = parser.find(id='stockBarResource3')
+    crop = parser.find(id='stockBarResource4')
+
+    resources_amount = {'lumber': lumber, 'clay': clay,
+                        'iron': iron, 'crop': crop}
+    return resources_amount
 
 
 def buildings(session, url):
@@ -38,7 +53,9 @@ def main():
     with requests.session() as session:
         html = login(session, LOGIN_URL)
         parser = BeautifulSoup(html, 'html.parser')
-        areas = [area.get('href') for area in parser.find_all('area')[:-1]]
+
+
+
         print(areas)
 
 
