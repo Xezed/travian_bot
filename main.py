@@ -1,8 +1,6 @@
-import asyncio
 import os
+import requests
 
-import aiohttp
-import async_timeout
 from bs4 import BeautifulSoup
 
 
@@ -12,13 +10,7 @@ LOGIN_USERNAME = os.environ['LOGIN_USERNAME']
 LOGIN_PASSWORD = os.environ['LOGIN_PASSWORD']
 
 
-# async def fetch(session, url):
-#     with async_timeout.timeout(10):
-#         async with session.get(url) as response:
-#             return await response.text()
-
-
-async def login(session, url):
+def login(session, url):
     data = {
         'name': LOGIN_USERNAME,
         'password': LOGIN_PASSWORD,
@@ -27,25 +19,28 @@ async def login(session, url):
         'login': login
     }
 
-    async with session.post(url, data=data) as resp:
-        return await resp.text()
+    resp = session.post(url, data=data)
+    return resp.text
 
 
-async def buildings(session, url):
-    async with session.get(url) as resp:
-        return await resp.text()
+def parse_field(html):
+    parser = BeautifulSoup(html, 'html.parser')
+    resource_level = parser.find(class_='level')
+    return resource_level
 
 
-async def main():
-    async with aiohttp.ClientSession() as session:
-        html = await login(session, LOGIN_URL)
+def buildings(session, url):
+    resp = session.get(url)
+    return resp.text
+
+
+def main():
+    with requests.session() as session:
+        html = login(session, LOGIN_URL)
         parser = BeautifulSoup(html, 'html.parser')
         areas = [area.get('href') for area in parser.find_all('area')[:-1]]
-
-        # html = await build(session, LOGIN_URL)
-        # with open('login.html', 'w', encoding='utf-8') as f:
-        #     f.write(html)
+        print(areas)
 
 
-loop = asyncio.get_event_loop()
-loop.run_until_complete(main())
+if __name__ == '__main__':
+    main()
