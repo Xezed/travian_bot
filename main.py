@@ -6,7 +6,8 @@ import async_timeout
 from bs4 import BeautifulSoup
 
 
-LOGIN_URL = 'https://ts7.travian.com/dorf1.php'
+SERVER_URL = 'https://ts7.travian.com/'
+LOGIN_URL = SERVER_URL + 'dorf1.php'
 LOGIN_USERNAME = os.environ['LOGIN_USERNAME']
 LOGIN_PASSWORD = os.environ['LOGIN_PASSWORD']
 
@@ -30,10 +31,8 @@ async def login(session, url):
         return await resp.text()
 
 
-async def build(session, url):
-    params = {'a': '14', 'c': '631a60'}
-
-    async with session.get(url, params=params) as resp:
+async def buildings(session, url):
+    async with session.get(url) as resp:
         return await resp.text()
 
 
@@ -41,8 +40,8 @@ async def main():
     async with aiohttp.ClientSession() as session:
         html = await login(session, LOGIN_URL)
         parser = BeautifulSoup(html, 'html.parser')
-        areas = parser.find_all('area')
-        print(areas)
+        areas = [area.get('href') for area in parser.find_all('area')[:-1]]
+
         # html = await build(session, LOGIN_URL)
         # with open('login.html', 'w', encoding='utf-8') as f:
         #     f.write(html)
