@@ -83,7 +83,18 @@ def main():
         minimal_resource = min(resources_amount, key=resources_amount.get)
         fields = parse_fields(parser)
 
-        print(select_field_to_build(fields, minimal_resource))
+        building_link = select_field_to_build(fields, minimal_resource)
+
+        html = session.get(building_link).text
+        parser = BeautifulSoup(html, 'html.parser')
+
+        link_to_upgrade = parser.find_all(class_='green build', value="Upgrade to level 3")[0].get('onclick')
+
+        pattern = re.compile(r'(?<=\').*(?=\')')
+
+        building_link = SERVER_URL + pattern.search(link_to_upgrade).group(0)
+
+        session.get(building_link)
 
 
 if __name__ == '__main__':
