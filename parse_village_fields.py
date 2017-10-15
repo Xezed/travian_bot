@@ -6,75 +6,90 @@ from bs4 import BeautifulSoup
 from credentials import SERVER_URL
 
 
-def build_field(html, session):
-    parser = BeautifulSoup(html, 'html.parser')
+class BuildField:
+    """Build field in village. Type depend on minimum resource"""
+    def __init__(self, html, session):
+        self.session = session
+        self.parser = html
 
-    resources_amount = parse_resources_amount(parser)
+    @property
+    def parser(self):
+        return self.__dict__['parser']
 
-    minimal_resource = min(resources_amount, key=resources_amount.get)
-    fields = parse_fields(parser)
+    @parser.setter
+    def parser(self, html):
+        # For debugging
+        # with open('1.html', 'a') as f:
+        #     f.write(html)
+        self.__dict__['parser'] = BeautifulSoup(html, 'html.parser')
+        
+    def build_field(self):
+        link_to_field = self.link_field_to_build()
+        link_to_build = self.link_to_build(link_to_field)
+        self.session.get(link_to_build)
+    
+    def parse_fields(self):
+        # Last link leads to town, so delete its
+        fields = self.parser.find_all('area')[:-1]
+    
+        # Level of buildings and related links in village
+        fields = {field.get('alt'): field.get('href') for field in fields}
+    
+        return fields
+    
+    def parse_resources_amount(self):
+        lumber = self.parse_resource('l1')
+        clay = self.parse_resource('l2')
+        iron = self.parse_resource('l3')
+        crop = self.parse_resource('l4')
 
-    building_link = select_field_to_build(fields, minimal_resource)
+        resources_amount = {'lumber': lumber, 'clay': clay,
+                            'iron': iron, 'crop': crop}
+        return resources_amount
+    
+    def parse_resource(self, id):
+        """Takes id of resource-tag in html and return amount of this resource"""
+        pattern = re.compile(r'\d+')
+        resource = self.parser.find(id=id).text
+        resource = resource.replace('.', '')
 
-    html = session.get(building_link).text
-    parser = BeautifulSoup(html, 'html.parser')
+        amount = pattern.search(resource)
+        amount = amount.group(0)
 
-    link_to_upgrade = parser.find_all(class_='green build', value="Upgrade to level 3")[0].get('onclick')
+        return amount
 
-    pattern = re.compile(r'(?<=\').*(?=\')')
+    def link_field_to_build(self):
+        """Select field where will be built new resource-field"""
 
-    building_link = SERVER_URL + pattern.search(link_to_upgrade).group(0)
+        # Find minimal resource and parse fields
+        resources_amount = self.parse_resources_amount()
+        minimal_resource = min(resources_amount, key=resources_amount.get)
+        fields = self.parse_fields()
 
-    session.get(building_link)
+        lowest_level = sys.maxsize
+        field_link = None
+    
+        # wood name in html for lumber, so need to change
+        if minimal_resource == 'lumber':
+            minimal_resource = 'wood'
+    
+        for field, link in fields.items():
+            fields_level = int(field[-1])
+    
+            if (minimal_resource in field.lower()) and (fields_level < lowest_level):
+                field_link = link
+    
+        return SERVER_URL + field_link
 
+    def link_to_build(self, building_link):
+        """Return a link which start building"""
+        html = self.session.get(building_link).text
+        self.parser = html
 
-def parse_fields(parser):
-    # Last link leads to town, so delete its
-    fields = parser.find_all('area')[:-1]
+        link_to_upgrade = self.parser.find_all(class_='section1')[0].button.get('onclick')
 
-    # Level of buildings and related links in village
-    fields = {field.get('alt'): field.get('href') for field in fields}
+        pattern = re.compile(r'(?<=\').*(?=\')')
 
-    return fields
+        building_link = SERVER_URL + pattern.search(link_to_upgrade).group(0)
 
-
-def parse_resource(id, parser):
-    """Takes id of resource-tag in html and return amount of this resource"""
-    pattern = re.compile(r'\d+')
-
-    resource = parser.find(id=id).text
-    resource = resource.replace('.', '')
-
-    amount = pattern.search(resource)
-    amount = amount.group(0)
-
-    return amount
-
-
-def parse_resources_amount(parser):
-    lumber = parse_resource('l1', parser)
-    clay = parse_resource('l2', parser)
-    iron = parse_resource('l3', parser)
-    crop = parse_resource('l4', parser)
-
-    resources_amount = {'lumber': lumber, 'clay': clay,
-                        'iron': iron, 'crop': crop}
-    return resources_amount
-
-
-def select_field_to_build(fields, resource):
-    """Select field where will be built new resource-field"""
-    lowest_level = sys.maxsize
-    field_link = None
-
-    # wood name in html for lumber, so need to change
-    if resource == 'lumber':
-        resource = 'wood'
-
-    for field, link in fields.items():
-        fields_level = int(field[-1])
-
-        if (resource in field.lower()) and (fields_level < lowest_level):
-            field_link = link
-
-    return SERVER_URL + field_link
+        return building_link
