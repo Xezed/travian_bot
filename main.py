@@ -41,6 +41,9 @@ def select_field_to_build(fields, resource):
     lowest_level = sys.maxsize
     field_link = None
 
+    if resource == 'lumber':
+        resource = 'wood'
+
     for field, link in fields.items():
         fields_level = int(field[-1])
 
@@ -77,7 +80,10 @@ def parse_resources_amount(parser):
 def main():
     with requests.session() as session:
         html = login(session, LOGIN_URL)
+        with open('file.html', 'w') as f:
+            f.write(html)
         parser = BeautifulSoup(html, 'html.parser')
+
 
         resources_amount = parse_resources_amount(parser)
         minimal_resource = min(resources_amount, key=resources_amount.get)
