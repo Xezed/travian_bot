@@ -34,14 +34,14 @@ class BuildField:
     
         # Level of buildings and related links in village
         fields = {field.get('alt'): field.get('href') for field in fields}
-    
+
         return fields
     
     def parse_resources_amount(self):
-        lumber = self.parse_resource('l1')
-        clay = self.parse_resource('l2')
-        iron = self.parse_resource('l3')
-        crop = self.parse_resource('l4')
+        lumber = int(self.parse_resource('l1'))
+        clay = int(self.parse_resource('l2'))
+        iron = int(self.parse_resource('l3'))
+        crop = int(self.parse_resource('l4'))
 
         resources_amount = {'lumber': lumber, 'clay': clay,
                             'iron': iron, 'crop': crop}
@@ -75,10 +75,9 @@ class BuildField:
     
         for field, link in fields.items():
             fields_level = int(field[-1])
-    
             if (minimal_resource in field.lower()) and (fields_level < lowest_level):
+                lowest_level = fields_level
                 field_link = link
-    
         return SERVER_URL + field_link
 
     def link_to_build(self, building_link):
