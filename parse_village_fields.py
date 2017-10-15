@@ -10,19 +10,9 @@ class BuildField:
     """Build field in village. Type depend on minimum resource"""
     def __init__(self, html, session):
         self.session = session
-        self.parser = html
+        self.parser_field_to_build = None
+        self.parser_village_page = BeautifulSoup(html, 'html.parser')
 
-    @property
-    def parser(self):
-        return self.__dict__['parser']
-
-    @parser.setter
-    def parser(self, html):
-        # For debugging
-        # with open('1.html', 'a') as f:
-        #     f.write(html)
-        self.__dict__['parser'] = BeautifulSoup(html, 'html.parser')
-        
     def build_field(self):
         link_to_field = self.link_field_to_build()
         link_to_build = self.link_to_build(link_to_field)
@@ -30,7 +20,7 @@ class BuildField:
     
     def parse_fields(self):
         # Last link leads to town, so delete its
-        fields = self.parser.find_all('area')[:-1]
+        fields = self.parser_village_page.find_all('area')[:-1]
     
         # Level of buildings and related links in village
         fields = {field.get('alt'): field.get('href') for field in fields}
@@ -50,7 +40,7 @@ class BuildField:
     def parse_resource(self, id):
         """Takes id of resource-tag in html and return amount of this resource"""
         pattern = re.compile(r'\d+')
-        resource = self.parser.find(id=id).text
+        resource = self.parser_village_page.find(id=id).text
         resource = resource.replace('.', '')
 
         amount = pattern.search(resource)
@@ -78,17 +68,42 @@ class BuildField:
             if (minimal_resource in field.lower()) and (fields_level < lowest_level):
                 lowest_level = fields_level
                 field_link = link
+
         return SERVER_URL + field_link
 
     def link_to_build(self, building_link):
         """Return a link which start building"""
         html = self.session.get(building_link).text
-        self.parser = html
+        self.parser_field_to_build = BeautifulSoup(html, 'html.parser')
 
-        link_to_upgrade = self.parser.find_all(class_='section1')[0].button.get('onclick')
+        if self.is_enough_resources():
+            link_to_upgrade = self.parser_field_to_build.find_all(class_='section1')[0].button.get('onclick')
+        else:
+            raise ValueError('It works!')
 
         pattern = re.compile(r'(?<=\').*(?=\')')
 
         building_link = SERVER_URL + pattern.search(link_to_upgrade).group(0)
 
         return building_link
+
+    def is_enough_resources(self):
+        required_resources = self.parse_required_resources()
+        available_resources = self.parse_resources_amount()
+        for key in required_resources.keys():
+            if available_resources[key] < required_resources[key]:
+                return False
+
+        return True
+
+    def parse_required_resources(self):
+        required_resources = self.parser_field_to_build.find_all(class_='resources')
+        required_resources = {span.get('title').lower(): int(span.contents[1]) for span in required_resources}
+
+        return required_resources
+
+
+def parse_time_build_left(parser):
+    second_left = parser.find_all(class_='buildDuration')[0].span.get('value')
+
+
