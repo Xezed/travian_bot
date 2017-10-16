@@ -27,9 +27,11 @@ class BuildField:
         # If success return amount of seconds to complete
         try:
             self.session.get(link_to_build)
+
         except ValueError:
-            # TODO compute the time when will be enough resources. Return this value.
             print('Lack of resources')
+            return self.parse_seconds_to_enough_resources()
+
         else:
             return self.parse_time_build_left()
 
@@ -140,4 +142,13 @@ class BuildField:
 
         return 0
 
+    def parse_seconds_to_enough_resources(self):
+        """Return time in seconds after which will be enough resources to build smth."""
 
+        # TODO handle extend granary/warehouse status
+        parsed_class = self.parser_field_to_build.find_all(class_='hide')[0]
+
+        seconds_to_enough_resources = parsed_class.span.get('value')
+        seconds_to_enough_resources = int(seconds_to_enough_resources)
+
+        return seconds_to_enough_resources
