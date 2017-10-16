@@ -26,6 +26,7 @@ class BuildField:
         try:
             self.session.get(link_to_build)
         except ValueError:
+            # TODO compute the time when will be enough resources. Return this value.
             print('Lack of resources')
         else:
             return self.parse_time_build_left()
@@ -116,10 +117,14 @@ class BuildField:
 
     def parse_time_build_left(self):
         parser = self.parser_village_page
-        second_left = parser.find_all(class_='buildDuration')[0].span.get('value')
-        if second_left:
-            second_left = int(second_left)
 
-        return second_left
+        second_left = parser.find_all(class_='buildDuration')
+
+        if second_left:
+            second_left = second_left[0].span.get('value')
+            second_left = int(second_left)
+            return second_left
+
+        return 0
 
 
