@@ -14,9 +14,21 @@ class BuildField:
         self.parser_village_page = BeautifulSoup(html, 'html.parser')
 
     def build_field(self):
+        # Check queue of buildings.
+        if self.parse_time_build_left():
+            print('Something is building already.')
+            return self.parse_time_build_left()
+
         link_to_field = self.link_field_to_build()
         link_to_build = self.link_to_build(link_to_field)
-        self.session.get(link_to_build)
+
+        # If success return amount of seconds to complete
+        try:
+            self.session.get(link_to_build)
+        except ValueError:
+            print('Lack of resources')
+        else:
+            return self.parse_time_build_left()
     
     def parse_fields(self):
         # Last link leads to town, so delete its
@@ -79,7 +91,7 @@ class BuildField:
         if self.is_enough_resources():
             link_to_upgrade = self.parser_field_to_build.find_all(class_='section1')[0].button.get('onclick')
         else:
-            raise ValueError('It works!')
+            raise ValueError('Lack of resources')
 
         pattern = re.compile(r'(?<=\').*(?=\')')
 
@@ -102,8 +114,12 @@ class BuildField:
 
         return required_resources
 
+    def parse_time_build_left(self):
+        parser = self.parser_village_page
+        second_left = parser.find_all(class_='buildDuration')[0].span.get('value')
+        if second_left:
+            second_left = int(second_left)
 
-def parse_time_build_left(parser):
-    second_left = parser.find_all(class_='buildDuration')[0].span.get('value')
+        return second_left
 
 
