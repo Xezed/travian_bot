@@ -9,9 +9,9 @@ from credentials import SERVER_URL
 class BuildField:
     """Build field in village. Type depend on minimum resource"""
     def __init__(self, html, session):
-        self.session = session
         self.parser_field_to_build = None
         self.parser_village_page = BeautifulSoup(html, 'html.parser')
+        self.session = session
 
     def build_field(self):
         """Main function. Gives order to build. Return time which requires to build smth.
