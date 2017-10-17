@@ -43,8 +43,8 @@ class BuildField(Builder):
         fields = self.parser_main_page.find_all('area')[:-1]
 
         # Temporary for the quest
-        print(fields[1])
-        del fields[1]
+        print(fields[7])
+        del fields[7]
 
         # Level of buildings and related links in village
         fields = {field.get('alt'): field.get('href') for field in fields}

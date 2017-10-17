@@ -6,7 +6,7 @@ from builder import Builder
 from credentials import SERVER_URL
 
 
-class BuildBuilding(Builder):
+class UpgradeBuilding(Builder):
     """Build the list of buildings"""
     def __init__(self, html, session, queue):
         super().__init__(html, session)
@@ -27,17 +27,14 @@ class BuildBuilding(Builder):
         return building_links
 
     def link_on_location_to_build(self):
-        building_to_build = deque.popleft()
+        building_to_build = self.queue.popleft()
         building_sites = self.parse_buildings()
-
+        print(building_sites)
         if building_to_build in building_sites:
             return SERVER_URL + building_sites[building_to_build]
 
         else:
-            # TODO building is not exist, need to build a new one
-            pass
-
-        raise KeyError('Incorrect input of building name')
+            raise KeyError('Incorrect input of building name')
 
 
 
