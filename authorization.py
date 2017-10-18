@@ -3,7 +3,7 @@ from bs4 import BeautifulSoup
 from credentials import LOGIN_PASSWORD, LOGIN_USERNAME
 
 
-def login(session, url):
+def login(session=None, url=None):
     html = session.get(url).text
     resp_parser = BeautifulSoup(html, 'html.parser')
     login_value = resp_parser.find('input', {'name': 'login'})['value']
