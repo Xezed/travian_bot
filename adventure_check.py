@@ -19,14 +19,14 @@ def go_to_adventure(session):
     confirmation_page_parser = BeautifulSoup(confirmation_page, 'html.parser')
     confirmation_form_inputs = confirmation_page_parser.find_all('input')
 
-    data = {tag['name']: tag['value'] for tag in confirmation_form_inputs}
-
-    session.post(SERVER_URL + 'start_adventure.php', data=data)
+    if confirmation_form_inputs:
+        data = {tag['name']: tag['value'] for tag in confirmation_form_inputs}
+        session.post(SERVER_URL + 'start_adventure.php', data=data)
 
 
 def is_adventure_available(html):
     parser = BeautifulSoup(html, 'html.parser')
-    adventure_count_tag = parser.find('div', {'class': 'speechBubbleContent'}).text
+    adventure_count_tag = parser.find('div', {'class': 'speechBubbleContent'})
     print(adventure_count_tag)
     if adventure_count_tag:
         return True

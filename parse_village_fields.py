@@ -6,8 +6,8 @@ from credentials import SERVER_URL
 
 class BuildField(Builder):
     """Build field in village. Type depend on minimum resource"""
-    def __init__(self, html, session):
-        super().__init__(html, session)
+    def __init__(self, village_page_url):
+        super().__init__(village_page_url)
 
     def link_on_location_to_build(self):
         """Return link to field where will be built new resource field"""
@@ -43,7 +43,6 @@ class BuildField(Builder):
         fields = self.parser_main_page.find_all('area')[:-1]
 
         # Temporary for the quest
-        print(fields[7])
         del fields[7]
 
         # Level of buildings and related links in village

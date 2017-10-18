@@ -1,10 +1,14 @@
+import requests
+
 from bs4 import BeautifulSoup
 
-from credentials import LOGIN_PASSWORD, LOGIN_USERNAME
+from credentials import LOGIN_PASSWORD, LOGIN_USERNAME, HEADERS, VILLAGE_URL
 
 
-def login(session=None, url=None):
-    html = session.get(url).text
+def login():
+    session = requests.Session()
+    session.headers = HEADERS
+    html = session.get(VILLAGE_URL).text
     resp_parser = BeautifulSoup(html, 'html.parser')
     login_value = resp_parser.find('input', {'name': 'login'})['value']
     print(login_value)
@@ -17,6 +21,6 @@ def login(session=None, url=None):
         'login': login_value
     }
 
-    html = session.post(url, data=data).text
+    html = session.post(VILLAGE_URL, data=data).text
 
-    return html
+    return session

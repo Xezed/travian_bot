@@ -3,19 +3,24 @@ from abc import ABC, abstractmethod
 
 from bs4 import BeautifulSoup
 
+from authorization import login
 from credentials import SERVER_URL
 
 
 class Builder(ABC):
     """Extendable class for building"""
-    def __init__(self, html, session):
+    def __init__(self, main_page_url):
         self.parser_location_to_build = None
-        self.parser_main_page = BeautifulSoup(html, 'html.parser')
-        self.session = session
+        self.main_page_url = main_page_url
+        self.parser_main_page = None
+        self.session = None
 
     def __call__(self, *args, **kwargs):
         """Main function. Gives order to build. Return time which requires to build smth.
             Or raise ValueError if lack of resources."""
+        self.session = login()
+        self.set_parser_of_main_page()
+
         # Check queue of buildings.
         if self.parse_time_build_left():
             print('Something is building already.')
@@ -122,3 +127,7 @@ class Builder(ABC):
                 return False
 
         return True
+
+    def set_parser_of_main_page(self):
+        main_page_html = self.session.get(self.main_page_url).text
+        self.parser_main_page = BeautifulSoup(main_page_html, 'html.parser')

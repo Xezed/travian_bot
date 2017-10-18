@@ -8,8 +8,8 @@ from credentials import SERVER_URL
 
 class UpgradeBuilding(Builder):
     """Build the list of buildings"""
-    def __init__(self, html, session, queue):
-        super().__init__(html, session)
+    def __init__(self, town_page_url, queue):
+        super().__init__(town_page_url)
         self.queue = deque(queue)
 
     def parse_buildings(self):
@@ -29,7 +29,7 @@ class UpgradeBuilding(Builder):
     def link_on_location_to_build(self):
         building_to_build = self.queue.popleft()
         building_sites = self.parse_buildings()
-        print(building_sites)
+
         if building_to_build in building_sites:
             return SERVER_URL + building_sites[building_to_build]
 
