@@ -2,7 +2,6 @@ from collections import deque
 from random import randint
 from time import sleep
 
-from adventure_check import adventure_check
 from credentials import VILLAGE_URL, TOWN_URL
 from parse_town_buildings import UpgradeBuilding
 from parse_village_fields import BuildField
@@ -11,7 +10,7 @@ from parse_village_fields import BuildField
 def main():
     # TODO asynchronous queue
 
-    buildings_queue = deque(('Main', 'Main'))
+    buildings_queue = deque(('Main',))
     upgrade_building = UpgradeBuilding(TOWN_URL, buildings_queue)
 
     while True:

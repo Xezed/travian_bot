@@ -3,8 +3,8 @@ from bs4 import BeautifulSoup
 from credentials import SERVER_URL
 
 
-def adventure_check(html=None, session=None):
-    if is_adventure_available(html):
+def adventure_check(session=None, parser=None):
+    if is_adventure_available(parser):
         go_to_adventure(session)
 
 
@@ -24,9 +24,9 @@ def go_to_adventure(session):
         session.post(SERVER_URL + 'start_adventure.php', data=data)
 
 
-def is_adventure_available(html):
-    parser = BeautifulSoup(html, 'html.parser')
-    adventure_count_tag = parser.find('div', {'class': 'speechBubbleContent'})
+def is_adventure_available(parser):
+    adventure_button = parser.find('button', {'class': 'adventureWhite'})
+    adventure_count_tag = adventure_button.find('div', {'class': 'speechBubbleContent'})
     print(adventure_count_tag)
     if adventure_count_tag:
         return True

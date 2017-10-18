@@ -3,6 +3,7 @@ from abc import ABC, abstractmethod
 
 from bs4 import BeautifulSoup
 
+from adventure_check import adventure_check
 from authorization import login
 from credentials import SERVER_URL
 
@@ -20,6 +21,7 @@ class Builder(ABC):
             Or raise ValueError if lack of resources."""
         self.session = login()
         self.set_parser_of_main_page()
+        adventure_check(self.session, self.parser_main_page)
 
         # Check queue of buildings.
         if self.parse_time_build_left():
