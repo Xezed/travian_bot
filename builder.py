@@ -1,7 +1,11 @@
 import re
+
 from abc import ABC, abstractmethod
+from random import randint
+from time import sleep
 
 from bs4 import BeautifulSoup
+from requests.exceptions import RequestException
 
 from adventure_check import adventure_check
 from authorization import login
@@ -25,22 +29,33 @@ class Builder(ABC):
 
         # Check queue of buildings.
         if self.parse_time_build_left():
-            print('Something is building already.')
-            return self.parse_time_build_left()
+            seconds_build_left = self.parse_time_build_left()
+            print('Something is building already... {!r} seconds left...'.format(seconds_build_left))
+
+            sleep(seconds_build_left)
 
         link_to_field = self.link_on_location_to_build()
-        link_to_build = self.link_to_build(link_to_field)
 
         # If success return amount of seconds to complete
         try:
+            link_to_build = self.link_to_build(link_to_field)
             self.session.get(link_to_build)
 
         except ValueError:
-            print('Lack of resources')
-            return self.parse_seconds_to_enough_resources()
+            time_to_enough = self.parse_seconds_to_enough_resources() + randint(15, 90)
+            print('Lack of resources. {!r} seconds to enough.'.format(time_to_enough))
+
+            sleep(time_to_enough)
+
+        except RequestException:
+            print('RequestException occurred. Waiting...')
+            sleep(1500)
 
         else:
-            return self.parse_time_build_left()
+            self.set_parser_of_main_page()
+            seconds_left = self.parse_time_build_left() + randint(15, 90)
+            print('Building... {!r} seconds left...'.format(seconds_left))
+            sleep(seconds_left)
 
     @abstractmethod
     def link_on_location_to_build(self):
