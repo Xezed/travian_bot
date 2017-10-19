@@ -22,23 +22,18 @@ class Builder(ABC):
         self.session = None
 
     def __call__(self, *args, **kwargs):
-
         self.session = login()
         self.set_parser_of_main_page()
-
         adventure_check(self.session, self.parser_main_page)
-
         self.check_queue_of_buildings()
-
         self.build()
 
     def build(self):
         """Building function with handle of errors."""
-
-        link_to_field = self.link_on_location_to_build()
+        link_to_field = self.parse_link_on_location_to_build()
 
         try:
-            link_to_build = self.link_to_build(link_to_field)
+            link_to_build = self.parse_link_to_build(link_to_field)
             self.session.get(link_to_build)
 
         # Lack of resources raises ValueError. Catch here.
@@ -46,7 +41,6 @@ class Builder(ABC):
             seconds_to_enough = self.parse_seconds_to_enough_resources() + randint(15, 90)
 
             info_logger_for_future_events('Lack of resources. Will be enough in ', seconds_to_enough)
-
             sleep(seconds_to_enough)
 
         except RequestException:
@@ -56,9 +50,8 @@ class Builder(ABC):
         else:
             self.set_parser_of_main_page()
             seconds_left = self.parse_time_build_left() + randint(15, 90)
-
+            print(seconds_left)
             info_logger_for_future_events('Building... Will be completed in ', seconds_left)
-
             sleep(seconds_left)
 
     def check_queue_of_buildings(self):
@@ -74,21 +67,10 @@ class Builder(ABC):
             self.session = login()
 
     @abstractmethod
-    def link_on_location_to_build(self):
+    def parse_link_on_location_to_build(self):
         """Return link to location where will be built new building or field"""
 
-    def parse_seconds_to_enough_resources(self):
-        """Return time in seconds after which will be enough resources to build smth."""
-
-        # TODO handle extend granary/warehouse status
-        parsed_class = self.parser_location_to_build.find_all(class_='hide')[0]
-
-        seconds_to_enough_resources = parsed_class.span.get('value')
-        seconds_to_enough_resources = int(seconds_to_enough_resources)
-
-        return seconds_to_enough_resources
-
-    def link_to_build(self, link_to_field):
+    def parse_link_to_build(self, link_to_field):
         """Return a link which starts building if enough resources, else ValueError"""
 
         # open resource field
@@ -135,6 +117,17 @@ class Builder(ABC):
         amount = amount.group(0)
 
         return amount
+
+    def parse_seconds_to_enough_resources(self):
+        """Return time in seconds after which will be enough resources to build smth."""
+
+        # TODO handle extend granary/warehouse status
+        parsed_class = self.parser_location_to_build.find_all(class_='hide')[0]
+
+        seconds_to_enough_resources = parsed_class.span.get('value')
+        seconds_to_enough_resources = int(seconds_to_enough_resources)
+
+        return seconds_to_enough_resources
 
     def parse_time_build_left(self):
         """Return amount of time in order to build smth."""

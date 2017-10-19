@@ -25,7 +25,7 @@ class UpgradeBuilding(Builder):
 
         return building_links
 
-    def link_on_location_to_build(self):
+    def parse_link_on_location_to_build(self):
         building_to_build = self.queue.popleft()
         building_sites = self.parse_buildings()
 
