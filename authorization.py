@@ -5,7 +5,7 @@ from bs4 import BeautifulSoup
 from credentials import LOGIN_PASSWORD, LOGIN_USERNAME, HEADERS, VILLAGE_URL
 
 
-def login():
+def logged_in_session():
     session = requests.Session()
     session.headers = HEADERS
     html = session.get(VILLAGE_URL).text
@@ -20,6 +20,6 @@ def login():
         'login': login_value
     }
 
-    html = session.post(VILLAGE_URL, data=data).text
+    session.post(VILLAGE_URL, data=data)
 
     return session

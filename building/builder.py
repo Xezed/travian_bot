@@ -8,7 +8,7 @@ from bs4 import BeautifulSoup
 from requests.exceptions import RequestException
 
 from adventure_check import adventure_check
-from authorization import login
+from authorization import logged_in_session
 from credentials import SERVER_URL
 from logger import info_logger_for_future_events
 
@@ -22,10 +22,22 @@ class Builder(ABC):
         self.session = None
 
     def __call__(self, *args, **kwargs):
-        self.session = login()
+        self.session = logged_in_session()
         self.set_parser_of_main_page()
         adventure_check(self.session, self.parser_main_page)
-        self.check_queue_of_buildings()
+
+        # If buildings queue is not empty, then sleep until complete.
+        if self.parse_seconds_build_left():
+            seconds_build_left = self.parse_seconds_build_left()
+
+            info_logger_for_future_events('Something is building already... Will be completed in ', seconds_build_left)
+            sleep(seconds_build_left)
+
+            # Renew the session and parser
+            self.session = logged_in_session()
+            self.set_parser_of_main_page()
+
+        # Then try to build something new.
         self.build()
 
     def build(self):
@@ -49,22 +61,9 @@ class Builder(ABC):
 
         else:
             self.set_parser_of_main_page()
-            seconds_left = self.parse_time_build_left() + randint(15, 90)
-            print(seconds_left)
+            seconds_left = self.parse_seconds_build_left() + randint(15, 90)
             info_logger_for_future_events('Building... Will be completed in ', seconds_left)
             sleep(seconds_left)
-
-    def check_queue_of_buildings(self):
-        """If buildings queue is not empty, then sleep until complete."""
-
-        if self.parse_time_build_left():
-            seconds_build_left = self.parse_time_build_left()
-
-            info_logger_for_future_events('Something is building already... Will be completed in ', seconds_build_left)
-
-            sleep(seconds_build_left)
-            # Renew the session
-            self.session = login()
 
     @abstractmethod
     def parse_link_on_location_to_build(self):
@@ -129,9 +128,8 @@ class Builder(ABC):
 
         return seconds_to_enough_resources
 
-    def parse_time_build_left(self):
+    def parse_seconds_build_left(self):
         """Return amount of time in order to build smth."""
-
         parser = self.parser_main_page
         second_left = parser.find_all(class_='buildDuration')
 
@@ -151,7 +149,7 @@ class Builder(ABC):
                 sleep(240)
                 self.set_parser_of_main_page()
 
-                return self.parse_time_build_left()
+                return self.parse_seconds_build_left()
 
         return 0
 
