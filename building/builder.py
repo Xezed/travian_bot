@@ -10,52 +10,68 @@ from requests.exceptions import RequestException
 from adventure_check import adventure_check
 from authorization import login
 from credentials import SERVER_URL
+from logger import info_logger_for_future_events
 
 
 class Builder(ABC):
     """Extendable class for building"""
     def __init__(self, main_page_url):
-        self.parser_location_to_build = None
         self.main_page_url = main_page_url
+        self.parser_location_to_build = None
         self.parser_main_page = None
         self.session = None
 
     def __call__(self, *args, **kwargs):
-        """Main function. Gives order to build. Return time which requires to build smth.
-            Or raise ValueError if lack of resources."""
+
         self.session = login()
         self.set_parser_of_main_page()
+
         adventure_check(self.session, self.parser_main_page)
 
-        # Check queue of buildings.
-        if self.parse_time_build_left():
-            seconds_build_left = self.parse_time_build_left()
-            print('Something is building already... {!r} seconds left...'.format(seconds_build_left))
+        self.check_queue_of_buildings()
 
-            sleep(seconds_build_left)
+        self.build()
+
+    def build(self):
+        """Building function with handle of errors."""
 
         link_to_field = self.link_on_location_to_build()
 
-        # If success return amount of seconds to complete
         try:
             link_to_build = self.link_to_build(link_to_field)
             self.session.get(link_to_build)
 
+        # Lack of resources raises ValueError. Catch here.
         except ValueError:
-            time_to_enough = self.parse_seconds_to_enough_resources() + randint(15, 90)
-            print('Lack of resources. {!r} seconds to enough.'.format(time_to_enough))
+            seconds_to_enough = self.parse_seconds_to_enough_resources() + randint(15, 90)
 
-            sleep(time_to_enough)
+            info_logger_for_future_events('Lack of resources. Will be enough in ', seconds_to_enough)
+
+            sleep(seconds_to_enough)
 
         except RequestException:
-            print('RequestException occurred. Waiting...')
+            info_logger_for_future_events('RequestException occurred. Waiting... Next attempt in', 1500)
             sleep(1500)
 
         else:
             self.set_parser_of_main_page()
             seconds_left = self.parse_time_build_left() + randint(15, 90)
-            print('Building... {!r} seconds left...'.format(seconds_left))
+
+            info_logger_for_future_events('Building... Will be completed in ', seconds_left)
+
             sleep(seconds_left)
+
+    def check_queue_of_buildings(self):
+        """If buildings queue is not empty, then sleep until complete."""
+
+        if self.parse_time_build_left():
+            seconds_build_left = self.parse_time_build_left()
+
+            info_logger_for_future_events('Something is building already... Will be completed in ', seconds_build_left)
+
+            sleep(seconds_build_left)
+            # Renew the session
+            self.session = login()
 
     @abstractmethod
     def link_on_location_to_build(self):
@@ -138,7 +154,7 @@ class Builder(ABC):
             # Event-jam in travian. We can only wait.
             else:
                 # 240 seconds to keep session alive.
-                print('Event jam. Waiting...')
+                info_logger_for_future_events('Event jam. Waiting... Next attempt in ', 240)
                 sleep(240)
                 self.set_parser_of_main_page()
 
@@ -150,6 +166,7 @@ class Builder(ABC):
         """Checks amount of resources in order to build something."""
         required_resources = self.parse_required_resources()
         available_resources = self.parse_resources_amount()
+
         for key in required_resources.keys():
             if (key in available_resources) and (available_resources[key] < required_resources[key]):
                 return False
@@ -157,5 +174,6 @@ class Builder(ABC):
         return True
 
     def set_parser_of_main_page(self):
+        """Renew the parser of the main page"""
         main_page_html = self.session.get(self.main_page_url).text
         self.parser_main_page = BeautifulSoup(main_page_html, 'html.parser')

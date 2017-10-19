@@ -1,6 +1,6 @@
 import sys
 
-from builder import Builder
+from .builder import Builder
 from credentials import SERVER_URL
 
 

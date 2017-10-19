@@ -1,8 +1,7 @@
 import re
-
 from collections import deque
 
-from builder import Builder
+from .builder import Builder
 from credentials import SERVER_URL
 
 
@@ -30,6 +29,7 @@ class UpgradeBuilding(Builder):
         building_to_build = self.queue.popleft()
         building_sites = self.parse_buildings()
 
+        # If given building was found then return link to it, else KeyError.
         if building_to_build in building_sites:
             return SERVER_URL + building_sites[building_to_build]
 

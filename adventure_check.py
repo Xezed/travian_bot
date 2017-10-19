@@ -1,15 +1,21 @@
 from bs4 import BeautifulSoup
 
 from credentials import SERVER_URL
+from logger import get_logger
+
+
+logger = get_logger(__name__)
 
 
 def adventure_check(session=None, parser=None):
+    """If any of adventures available then go, else do nothing."""
     if is_adventure_available(parser):
         go_to_adventure(session)
+        logger.info('Going to adventure')
 
 
 def go_to_adventure(session):
-    hero_page = session.get('https://ts7.travian.com/hero.php?t=3').text
+    hero_page = session.get(SERVER_URL + 'hero.php?t=3').text
     hero_page_parser = BeautifulSoup(hero_page, 'html.parser')
     link_to_adventure = hero_page_parser.find('a', {'class': 'gotoAdventure'})['href']
 
