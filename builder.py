@@ -131,7 +131,18 @@ class Builder(ABC):
         if second_left:
             second_left = second_left[0].span.get('value')
             second_left = int(second_left)
-            return second_left
+
+            if second_left > 0:
+                return second_left
+
+            # Event-jam in travian. We can only wait.
+            else:
+                # 240 seconds to keep session alive.
+                print('Event jam. Waiting...')
+                sleep(240)
+                self.set_parser_of_main_page()
+
+                return self.parse_time_build_left()
 
         return 0
 

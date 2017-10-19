@@ -11,7 +11,6 @@ def login():
     html = session.get(VILLAGE_URL).text
     resp_parser = BeautifulSoup(html, 'html.parser')
     login_value = resp_parser.find('input', {'name': 'login'})['value']
-    print(login_value)
 
     data = {
         'name': LOGIN_USERNAME,
