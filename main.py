@@ -10,6 +10,8 @@ def main():
 
     # Here you can set up your building queue.
     buildings_queue = deque()
+
+    build_field = BuildField(VILLAGE_URL)
     upgrade_building = UpgradeBuilding(TOWN_URL, buildings_queue)
 
     while True:
@@ -17,7 +19,6 @@ def main():
             upgrade_building()
 
         else:
-            build_field = BuildField(VILLAGE_URL)
             build_field()
 
 
