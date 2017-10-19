@@ -1,5 +1,4 @@
 import re
-from collections import deque
 
 from .builder import Builder
 from credentials import SERVER_URL
@@ -9,7 +8,13 @@ class UpgradeBuilding(Builder):
     """Build the list of buildings"""
     def __init__(self, town_page_url, queue):
         super().__init__(town_page_url)
-        self.queue = deque(queue)
+        self.queue = list(queue)
+
+    def __call__(self, *args, **kwargs):
+        successfully_built = super().__call__(*args, **kwargs)
+
+        if successfully_built:
+            del self.queue[0]
 
     def parse_buildings(self):
         """Return all buildings and related links"""
@@ -26,7 +31,7 @@ class UpgradeBuilding(Builder):
         return building_links
 
     def parse_link_on_location_to_build(self):
-        building_to_build = self.queue.popleft()
+        building_to_build = self.queue[0]
         building_sites = self.parse_buildings()
 
         # If given building was found then return link to it, else KeyError.

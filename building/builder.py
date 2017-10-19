@@ -41,7 +41,7 @@ class Builder(ABC):
         self.build()
 
     def build(self):
-        """Building function with handle of errors."""
+        """Building function with handle of errors. If success return True, else None"""
         link_to_field = self.parse_link_on_location_to_build()
 
         try:
@@ -64,6 +64,7 @@ class Builder(ABC):
             seconds_left = self.parse_seconds_build_left() + randint(15, 90)
             info_logger_for_future_events('Building... Will be completed in ', seconds_left)
             sleep(seconds_left)
+            return True
 
     @abstractmethod
     def parse_link_on_location_to_build(self):
