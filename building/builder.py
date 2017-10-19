@@ -159,7 +159,7 @@ class Builder(ABC):
         required_resources = self.parse_required_resources()
         available_resources = self.parse_resources_amount()
 
-        for key in required_resources.keys():
+        for key in required_resources:
             if (key in available_resources) and (available_resources[key] < required_resources[key]):
                 return False
 

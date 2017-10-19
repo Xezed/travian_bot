@@ -24,9 +24,11 @@ def get_logger(name):
     return logger
 
 
+future_logger = get_logger('future_logger')
+
+
 def info_logger_for_future_events(message, seconds):
     """Add assigned amount of seconds to the current timestamp and add new timestamp to the end of message."""
-    future_logger = get_logger('future_logger')
 
     timestamp = add_seconds_to_datetime_now(seconds)
     future_logger.info(message + str(timestamp))
