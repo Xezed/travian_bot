@@ -7,7 +7,7 @@ from time import sleep
 from bs4 import BeautifulSoup
 from requests.exceptions import RequestException
 
-from adventure_check import adventure_check
+from check_adventure import check_adventure
 from authorization import logged_in_session
 from credentials import SERVER_URL
 from logger import info_logger_for_future_events
@@ -24,21 +24,13 @@ class Builder(ABC):
     def __call__(self, *args, **kwargs):
         self.session = logged_in_session()
         self.set_parser_of_main_page()
-        adventure_check(self.session, self.parser_main_page)
+        check_adventure(self.session, self.parser_main_page)
+        self.check_queue()
 
-        # If buildings queue is not empty, then sleep until complete.
-        if self.parse_seconds_build_left():
-            seconds_build_left = self.parse_seconds_build_left()
+        successfully_built = self.build()
 
-            info_logger_for_future_events('Something is building already... Will be completed in ', seconds_build_left)
-            sleep(seconds_build_left)
-
-            # Renew the session and parser
-            self.session = logged_in_session()
-            self.set_parser_of_main_page()
-
-        # Then try to build something new.
-        self.build()
+        # Trying to build something until success then return True.
+        return True if successfully_built else self.__call__()
 
     def build(self):
         """Building function with handle of errors. If success return True, else None"""
@@ -64,7 +56,20 @@ class Builder(ABC):
             seconds_left = self.parse_seconds_build_left() + randint(15, 90)
             info_logger_for_future_events('Building... Will be completed in ', seconds_left)
             sleep(seconds_left)
+
             return True
+
+    def check_queue(self):
+        """If buildings queue is not empty, then sleep until complete."""
+        if self.parse_seconds_build_left():
+            seconds_build_left = self.parse_seconds_build_left()
+
+            info_logger_for_future_events('Something is building already... Will be completed in ', seconds_build_left)
+            sleep(seconds_build_left)
+
+            # Renew the session and parser
+            self.session = logged_in_session()
+            self.set_parser_of_main_page()
 
     @abstractmethod
     def parse_link_on_location_to_build(self):

@@ -7,17 +7,14 @@ def main():
     # TODO asynchronous queue
 
     # Here you can set up your building queue.
-    buildings_queue = []
+    buildings_queue = ['Cranny', 'Cranny']
+
+    if buildings_queue:
+        upgrade_building = UpgradeBuilding(TOWN_URL, buildings_queue)
+        upgrade_building()
 
     build_field = BuildField(VILLAGE_URL)
-    upgrade_building = UpgradeBuilding(TOWN_URL, buildings_queue)
-
-    while True:
-        if upgrade_building.queue:
-            upgrade_building()
-
-        else:
-            build_field()
+    build_field()
 
 
 if __name__ == '__main__':

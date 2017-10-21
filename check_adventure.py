@@ -7,7 +7,7 @@ from logger import get_logger
 logger = get_logger(__name__)
 
 
-def adventure_check(session=None, parser=None):
+def check_adventure(session=None, parser=None):
     """If any of adventures available then go, else do nothing."""
     if is_adventure_available(parser):
         go_to_adventure(session)

@@ -9,6 +9,12 @@ class BuildField(Builder):
     def __init__(self, village_page_url):
         super().__init__(village_page_url)
 
+    def __call__(self, *args, **kwargs):
+        successfully_built = super().__call__()
+
+        if successfully_built:
+            self.__call__()
+
     def parse_link_on_location_to_build(self):
         """Return link to field where will be built new resource field"""
 

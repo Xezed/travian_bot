@@ -11,10 +11,14 @@ class UpgradeBuilding(Builder):
         self.queue = list(queue)
 
     def __call__(self, *args, **kwargs):
-        successfully_built = super().__call__(*args, **kwargs)
+        """Build buildings until queue is not empty."""
+        if self.queue:
+            successfully_built = super().__call__(*args, **kwargs)
 
-        if successfully_built:
-            del self.queue[0]
+            if successfully_built:
+                del self.queue[0]
+
+            self.__call__()
 
     def parse_buildings(self):
         """Return all buildings and related links"""
