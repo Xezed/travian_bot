@@ -22,7 +22,6 @@ class Builder(ABC):
         self.session = None
 
     async def __call__(self, *args, **kwargs):
-        print('Call!')
         self.session = logged_in_session()
         self.set_parser_of_main_page()
         check_adventure(self.session, self.parser_main_page)

@@ -18,9 +18,11 @@ async def builder():
 
 
 def main():
-    # TODO asynchronous queue
+    asyncio.async(builder())
+
     loop = asyncio.get_event_loop()
-    loop.run_until_complete(builder())
+    loop.run_forever()
+    loop.close()
 
 
 if __name__ == '__main__':
