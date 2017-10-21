@@ -32,7 +32,16 @@ def is_adventure_available(parser):
     adventure_button = parser.find('button', {'class': 'adventureWhite'})
     adventure_count_tag = adventure_button.find('div', {'class': 'speechBubbleContent'})
 
-    if adventure_count_tag:
+    hero_is_available = is_hero_available(parser)
+
+    if adventure_count_tag and hero_is_available:
         return True
 
     return False
+
+
+def is_hero_available(parser):
+    hero_is_not_available = parser.find('img', {'alt': 'on the way'})
+    hero_is_available = not bool(hero_is_not_available)
+
+    return hero_is_available
