@@ -10,15 +10,15 @@ class UpgradeBuilding(Builder):
         super().__init__(town_page_url)
         self.queue = list(queue)
 
-    def __call__(self, *args, **kwargs):
+    async def __call__(self, *args, **kwargs):
         """Build buildings until queue is not empty."""
         if self.queue:
-            successfully_built = super().__call__(*args, **kwargs)
+            successfully_built = await super().__call__(*args, **kwargs)
 
             if successfully_built:
                 del self.queue[0]
 
-            self.__call__()
+            await self.__call__()
 
     def parse_buildings(self):
         """Return all buildings and related links"""

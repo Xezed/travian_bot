@@ -1,8 +1,8 @@
 import re
 
 from abc import ABC, abstractmethod
+from asyncio import sleep
 from random import randint
-from time import sleep
 
 from bs4 import BeautifulSoup
 from requests.exceptions import RequestException
@@ -21,18 +21,19 @@ class Builder(ABC):
         self.parser_main_page = None
         self.session = None
 
-    def __call__(self, *args, **kwargs):
+    async def __call__(self, *args, **kwargs):
+        print('Call!')
         self.session = logged_in_session()
         self.set_parser_of_main_page()
         check_adventure(self.session, self.parser_main_page)
-        self.check_queue()
+        await self.check_queue()
 
-        successfully_built = self.build()
+        successfully_built = await self.build()
 
         # Trying to build something until success then return True.
         return True if successfully_built else self.__call__()
 
-    def build(self):
+    async def build(self):
         """Building function with handle of errors. If success return True, else None"""
         link_to_field = self.parse_link_on_location_to_build()
 
@@ -45,27 +46,27 @@ class Builder(ABC):
             seconds_to_enough = self.parse_seconds_to_enough_resources() + randint(15, 90)
 
             info_logger_for_future_events('Lack of resources. Will be enough in ', seconds_to_enough)
-            sleep(seconds_to_enough)
+            await sleep(seconds_to_enough)
 
         except RequestException:
             info_logger_for_future_events('RequestException occurred. Waiting... Next attempt in', 1500)
-            sleep(1500)
+            await sleep(1500)
 
         else:
             self.set_parser_of_main_page()
-            seconds_left = self.parse_seconds_build_left() + randint(15, 90)
+            seconds_left = await self.parse_seconds_build_left() + randint(15, 90)
             info_logger_for_future_events('Building... Will be completed in ', seconds_left)
-            sleep(seconds_left)
+            await sleep(seconds_left)
 
             return True
 
-    def check_queue(self):
+    async def check_queue(self):
         """If buildings queue is not empty, then sleep until complete."""
-        if self.parse_seconds_build_left():
-            seconds_build_left = self.parse_seconds_build_left()
+        if await self.parse_seconds_build_left():
+            seconds_build_left = await self.parse_seconds_build_left()
 
             info_logger_for_future_events('Something is building already... Will be completed in ', seconds_build_left)
-            sleep(seconds_build_left)
+            await sleep(seconds_build_left)
 
             # Renew the session and parser
             self.session = logged_in_session()
@@ -134,7 +135,7 @@ class Builder(ABC):
 
         return seconds_to_enough_resources
 
-    def parse_seconds_build_left(self):
+    async def parse_seconds_build_left(self):
         """Return amount of time in order to build smth."""
         parser = self.parser_main_page
         second_left = parser.find_all(class_='buildDuration')
@@ -152,10 +153,10 @@ class Builder(ABC):
             else:
                 # 240 seconds to keep session alive.
                 info_logger_for_future_events('Event jam. Waiting... Next attempt in ', 240)
-                sleep(240)
+                await sleep(240)
                 self.set_parser_of_main_page()
 
-                return self.parse_seconds_build_left()
+                return await self.parse_seconds_build_left()
 
         return 0
 
