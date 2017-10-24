@@ -10,13 +10,14 @@ class TroopsOrder:
     """Creates an order for troops and send them to concrete point with timing."""
     def __init__(self, barrack_url=None, troops=None, coords=None, attack_type=None):
         self.barrack_url = barrack_url
-        self.session = None
+        self.session = logged_in_session()
         self.troops = dict(troops)
-        self.coords = dict(coords)
+        self.coords = None
         self.type = dict(attack_type)
 
-    def __call__(self, *args, **kwargs):
-        self.session = logged_in_session()
+    def __call__(self, coords, *args, **kwargs):
+        self.coords = dict(coords)
+        # self.session = logged_in_session()
         self.send_troops()
 
     def send_troops(self):
@@ -57,6 +58,8 @@ troops = {'t1': '1',
           't11': '0'}
 
 coords = [
+    {'x': '-24', 'y': '-228'},
+    {'x': '-23', 'y': '-225'},
     {'x': '-23', 'y': '-224'},
     {'x': '-18', 'y': '-230'},
     {'x': '-25', 'y': '-225'},
@@ -64,9 +67,10 @@ coords = [
 ]
 
 attack_type = {'c': 4}
+order = TroopsOrder(barrack_url='https://ts7.travian.com/build.php?tt=2&id=39',
+                        troops=troops, attack_type=attack_type)
 
 for cord in coords:
-    order = TroopsOrder(barrack_url='https://ts7.travian.com/build.php?tt=2&id=39',
-                        troops=troops, coords=cord, attack_type=attack_type)
-    order()
+    order(cord)
+    print('Done!')
     sleep(10+randint(0, 10))
