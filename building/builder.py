@@ -30,7 +30,7 @@ class Builder(ABC):
         successfully_built = await self.build()
 
         # Trying to build something until success then return True.
-        return True if successfully_built else self.__call__()
+        return True if successfully_built else await self.__call__()
 
     async def build(self):
         """Building function with handle of errors. If success return True, else None"""

@@ -3,6 +3,7 @@ import asyncio
 from building.parse_town_buildings import UpgradeBuilding
 from building.parse_village_fields import BuildField
 from credentials import VILLAGE_URL, TOWN_URL
+from send_troops import TroopsOrder
 
 
 async def builder():
@@ -15,6 +16,10 @@ async def builder():
 
     build_field = BuildField(VILLAGE_URL)
     await build_field()
+
+
+# async def trooper():
+#     order = TroopsOrder(barrack_url='https://ts7.travian.com/build.php?tt=2&id=39')
 
 
 def main():

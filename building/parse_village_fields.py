@@ -1,7 +1,13 @@
 import sys
 
+from asyncio import sleep
+
 from .builder import Builder
 from credentials import SERVER_URL
+from logger import get_logger
+
+
+logger = get_logger(__name__)
 
 
 class BuildField(Builder):
@@ -26,11 +32,18 @@ class BuildField(Builder):
         # find link to field with minimal resource
         for field, link in fields.items():
             fields_level = int(field[-1])
-            if (minimal_resource in field.lower()) and (fields_level < lowest_level):
+            if (minimal_resource in field.lower()) and (10 >= fields_level < lowest_level):
                 lowest_level = fields_level
                 field_link = link
 
-        return SERVER_URL + field_link
+        # If there are some field <10lvl then return link to it. Logged error and sleep otherwise.
+        if field_link:
+
+            return SERVER_URL + field_link
+
+        else:
+            logger.error('Some field reached max level!')
+            sleep(6000)
 
     def minimal_resource(self):
         """Return minimal resource"""
