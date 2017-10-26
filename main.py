@@ -18,25 +18,25 @@ async def builder():
     await build_field()
 
 
-def trooper():
-    with open('raids.txt', 'r') as f:
-
-        for line in f.readlines():
-            coords, time_of_next_raid = line.split(';')
-            coords = eval(coords)
-            asyncio.async(order(coords=coords, time_of_next_raid=time_of_next_raid))
-
-
-async def order(coords=None, time_of_next_raid=None):
-
-    order = TroopsOrder(barrack_url='https://ts7.travian.com/build.php?tt=2&id=39',
-                        coords=coords, time_of_next_raid=time_of_next_raid)
-    await order()
+# def trooper():
+#     with open('raids.txt', 'r') as f:
+#
+#         for line in f.readlines():
+#             coords, time_of_next_raid = line.split(';')
+#             coords = eval(coords)
+#             asyncio.async(order(coords=coords, time_of_next_raid=time_of_next_raid))
+#
+#
+# async def order(coords=None, time_of_next_raid=None):
+#
+#     order = TroopsOrder(barrack_url='https://ts7.travian.com/build.php?tt=2&id=39',
+#                         coords=coords, time_of_next_raid=time_of_next_raid)
+#     await order()
 
 
 def main():
-    # asyncio.async(builder())
-    trooper()
+    asyncio.async(builder())
+    # trooper()
 
     loop = asyncio.get_event_loop()
     loop.run_forever()

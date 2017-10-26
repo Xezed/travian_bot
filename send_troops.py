@@ -52,6 +52,7 @@ class TroopsOrder:
         await self.__call__()
 
     def send_troops(self):
+        """The main function"""
         barrack_page = self.session.get(self.barrack_url).text
         barrack_parser = BeautifulSoup(barrack_page, 'html.parser')
 
@@ -73,12 +74,12 @@ class TroopsOrder:
 
         hidden_inputs_tags = confirmation_parser.find_all('input', {'type': 'hidden'})
         post_data = {tag['name']: tag['value'] for tag in hidden_inputs_tags}
-
         post_data['s1'] = 'ok'
 
         self.session.post(self.barrack_url, data=post_data)
 
     def parse_troops_amount(self):
+        """Parse amount of troops and save of to property"""
         overview_page_link = self.barrack_url.replace('?tt=2', '?tt=1')
         overview_page = self.session.get(overview_page_link).text
         overview_page_parser = BeautifulSoup(overview_page, 'html.parser')
@@ -96,30 +97,27 @@ class TroopsOrder:
         timer_element = confirmation_parser.find('div', class_='at').contents[1]
 
         arrival_time_in_seconds = int(timer_element['value'])
-
         arrival_time = datetime.fromtimestamp(arrival_time_in_seconds) - datetime.now()
 
         seconds_to_come_back = arrival_time.total_seconds() * 2
-
         come_back_time = time() + seconds_to_come_back
 
-        self.time_of_next_raid = come_back_time + 20000
+        self.time_of_next_raid = come_back_time + 3600
 
     def save_next_raid_time(self):
         """Save coords and time for next raid in file."""
         with open("raids.txt", "rt") as file_input:
             with open("new_raids.txt", "wt") as file_output:
+
                 for line in file_input:
                     if str(self.coords) in line:
                         file_output.write(str(self.coords) + ';' + str(self.time_of_next_raid) + '\n')
                     else:
                         file_output.write(line)
+
         os.rename('new_raids.txt', "raids.txt")
 
     def what_troops_available(self):
         """Determine what type of troops will be sent based on their availability. Return type and amount"""
-        if int(self.troops['Theutates Thunder']) >= 14:
-            return {'t4': "14"}
-
-        if int(self.troops['Phalanx']) >= 50:
-            return {'t1': "50"}
+        if int(self.troops['Theutates Thunder']) >= 10:
+            return {'t4': "10"}
