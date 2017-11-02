@@ -2,6 +2,8 @@ import sys
 
 from asyncio import sleep
 
+from bs4 import BeautifulSoup
+
 from .builder import Builder
 from credentials import SERVER_URL
 from logger import get_logger
@@ -21,26 +23,33 @@ class BuildField(Builder):
         if successfully_built:
             await self.__call__()
 
-    def parse_link_on_location_to_build(self):
+    def set_parser_location_to_build(self):
         """Return link to field where will be built new resource field"""
 
-        field_link = None
-        fields = self.parse_fields()
-        lowest_level = sys.maxsize
+        # # If enough crop then build field of minimal resource else crop field
+        # if self.is_enough_crop():
         minimal_resource = self.minimal_resource()
 
-        # find link to field with minimal resource
-        for field, link in fields.items():
-            fields_level = int(field[-1])
-            if (minimal_resource in field.lower()) and (10 >= fields_level < lowest_level):
-                lowest_level = fields_level
-                field_link = link
+        # else:
+        #     minimal_resource = 'crop'
+
+        field_link = self.link_to_field_to_build(minimal_resource)
 
         # If there are some field <10lvl then return link to it. Logged error and sleep otherwise.
         if field_link:
+            full_field_link = SERVER_URL + field_link
+            field_page = self.session.get(full_field_link).text
 
-            return SERVER_URL + field_link
+            self.parser_location_to_build = BeautifulSoup(field_page, 'html.parser')
 
+            if self.is_enough_crop():
+                return
+
+            else:
+                field_link = self.link_to_field_to_build('crop')
+                full_field_link = SERVER_URL + field_link
+                field_page = self.session.get(full_field_link).text
+                self.parser_location_to_build = BeautifulSoup(field_page, 'html.parser')
         else:
             logger.error('Some field reached max level!')
             sleep(6000)
@@ -61,10 +70,22 @@ class BuildField(Builder):
         # Last link leads to town, so delete its
         fields = self.parser_main_page.find_all('area')[:-1]
 
-        # Temporary for the quest
-        del fields[7]
-
         # Level of buildings and related links in village
         fields = {field.get('alt'): field.get('href') for field in fields}
 
         return fields
+
+    def link_to_field_to_build(self, minimal_resource):
+        """Find link to field with minimal resource"""
+
+        fields = self.parse_fields()
+        field_link = None
+        lowest_level = sys.maxsize
+
+        for field, link in fields.items():
+            fields_level = int(field[-1])
+            if (minimal_resource in field.lower()) and (10 >= fields_level < lowest_level):
+                lowest_level = fields_level
+                field_link = link
+
+        return field_link

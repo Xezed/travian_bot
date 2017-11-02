@@ -1,5 +1,7 @@
 import re
 
+from bs4 import BeautifulSoup
+
 from .builder import Builder
 from credentials import SERVER_URL
 
@@ -34,13 +36,16 @@ class UpgradeBuilding(Builder):
 
         return building_links
 
-    def parse_link_on_location_to_build(self):
+    def set_parser_location_to_build(self):
         building_to_build = self.queue[0]
         building_sites = self.parse_buildings()
 
-        # If given building was found then return link to it, else KeyError.
+        # If given building was found then set parser, else KeyError.
         if building_to_build in building_sites:
-            return SERVER_URL + building_sites[building_to_build]
+            link_to_building_field = SERVER_URL + building_sites[building_to_build]
+            building_field_page = self.session.get(link_to_building_field).text
+
+            self.parser_location_to_build = BeautifulSoup(building_field_page, 'html.parser')
 
         else:
             raise KeyError('Incorrect input of building name')

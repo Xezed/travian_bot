@@ -26,6 +26,7 @@ class Builder(ABC):
         self.set_parser_of_main_page()
         check_adventure(self.session, self.parser_main_page)
         await self.check_queue()
+        self.set_parser_location_to_build()
 
         successfully_built = await self.build()
 
@@ -34,10 +35,8 @@ class Builder(ABC):
 
     async def build(self):
         """Building function with handle of errors. If success return True, else None"""
-        link_to_field = self.parse_link_on_location_to_build()
-
         try:
-            link_to_build = self.parse_link_to_build(link_to_field)
+            link_to_build = self.parse_link_to_build()
             self.session.get(link_to_build)
 
         # Lack of resources raises ValueError. Catch here.
@@ -68,19 +67,10 @@ class Builder(ABC):
             await sleep(seconds_build_left)
 
             # Renew the session and parser
-            self.session = logged_in_session()
-            self.set_parser_of_main_page()
+            await self.__call__()
 
-    @abstractmethod
-    def parse_link_on_location_to_build(self):
-        """Return link to location where will be built new building or field"""
-
-    def parse_link_to_build(self, link_to_field):
+    def parse_link_to_build(self):
         """Return a link which starts building if enough resources, else ValueError"""
-
-        # open resource field
-        html = self.session.get(link_to_field).text
-        self.parser_location_to_build = BeautifulSoup(html, 'html.parser')
 
         # If enough resources parse onclick attribute
         if self.is_enough_resources():
@@ -159,6 +149,17 @@ class Builder(ABC):
 
         return 0
 
+    def is_enough_crop(self):
+        """Check if enough crop for building smth new."""
+        parse_status_messages = self.parser_location_to_build.find_all(class_='statusMessage')
+        if parse_status_messages:
+            parse_message = parse_status_messages[0].text
+
+            if parse_message == 'Lack of food: extend cropland first!':
+                return False
+
+        return True
+
     def is_enough_resources(self):
         """Checks amount of resources in order to build something."""
         required_resources = self.parse_required_resources()
@@ -174,3 +175,7 @@ class Builder(ABC):
         """Renew the parser of the main page"""
         main_page_html = self.session.get(self.main_page_url).text
         self.parser_main_page = BeautifulSoup(main_page_html, 'html.parser')
+
+    @abstractmethod
+    def set_parser_location_to_build(self):
+        """Set parser to location where will be built new building or field"""

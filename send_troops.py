@@ -80,13 +80,13 @@ class TroopsOrder:
 
     def parse_troops_amount(self):
         """Parse amount of troops and save of to property"""
-        overview_page_link = self.barrack_url.replace('?tt=2', '?tt=1')
+        overview_page_link = self.barrack_url.replace('tt=2', 'tt=1')
         overview_page = self.session.get(overview_page_link).text
         overview_page_parser = BeautifulSoup(overview_page, 'html.parser')
 
         # Get tags with amount of units.
-        unit_amount_tags = overview_page_parser.find_all('td', class_='unit')
         unit_name_tags = overview_page_parser.find_all('img', class_='unit')
+        unit_amount_tags = overview_page_parser.find_all('td', class_='unit')
 
         # Create dictionary with troops information
         troops_amount = {name['alt']: amount.text for name, amount in zip(unit_name_tags, unit_amount_tags)}
@@ -102,7 +102,7 @@ class TroopsOrder:
         seconds_to_come_back = arrival_time.total_seconds() * 2
         come_back_time = time() + seconds_to_come_back
 
-        self.time_of_next_raid = come_back_time + 3600
+        self.time_of_next_raid = come_back_time
 
     def save_next_raid_time(self):
         """Save coords and time for next raid in file."""
@@ -119,5 +119,5 @@ class TroopsOrder:
 
     def what_troops_available(self):
         """Determine what type of troops will be sent based on their availability. Return type and amount"""
-        if int(self.troops['Theutates Thunder']) >= 10:
-            return {'t4': "10"}
+        if int(self.troops['Theutates Thunder']) >= 20:
+            return {'t4': '20'}
