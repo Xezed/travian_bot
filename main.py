@@ -9,8 +9,7 @@ from send_troops import TroopsOrder
 def builders_manager():
     # Here you can set up your building queue.
 
-    asyncio.async(builder('?newdid=65970&', []))
-    asyncio.async(builder('?newdid=57154&', []))
+    asyncio.async(builder('?newdid=10999&', []))
 
 
 async def builder(village_special_url, buildings_queue):

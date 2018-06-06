@@ -1,0 +1,7 @@
+version: '3.3'
+
+services:
+  travian-bot:
+      build: .
+      env_file:
+        - .env

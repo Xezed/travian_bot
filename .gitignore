@@ -1,6 +1,6 @@
 1.html
 log.txt
-env/
+.env
 raids.txt
 # Compiled source #
 ###################
