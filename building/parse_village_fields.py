@@ -27,11 +27,11 @@ class BuildField(Builder):
         """Return link to field where will be built new resource field"""
 
         # # If enough crop then build field of minimal resource else crop field
-        # if self.is_enough_crop():
-        minimal_resource = self.minimal_resource()
+        if self.is_enough_crop():
+            minimal_resource = self.minimal_resource()
 
-        # else:
-        #     minimal_resource = 'crop'
+        else:
+            minimal_resource = 'crop'
 
         field_link = self.link_to_field_to_build(minimal_resource)
 
