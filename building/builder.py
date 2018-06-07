@@ -107,6 +107,7 @@ class Builder(ABC):
         pattern = re.compile(r'\d+')
         resource = self.parser_main_page.find(id=id).text
         resource = resource.replace('.', '')
+        resource = resource.replace(',', '')
 
         amount = pattern.search(resource)
         amount = amount.group(0)
