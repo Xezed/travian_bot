@@ -26,13 +26,7 @@ class BuildField(Builder):
     def set_parser_location_to_build(self):
         """Return link to field where will be built new resource field"""
 
-        # # If enough crop then build field of minimal resource else crop field
-        if self.is_enough_crop():
-            minimal_resource = self.minimal_resource()
-
-        else:
-            minimal_resource = 'crop'
-
+        minimal_resource = self.minimal_resource()
         field_link = self.link_to_field_to_build(minimal_resource)
 
         # If there are some field <10lvl then return link to it. Logged error and sleep otherwise.
