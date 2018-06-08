@@ -1,4 +1,5 @@
 import asyncio
+import os
 
 from building.parse_town_buildings import UpgradeBuilding
 from building.parse_village_fields import BuildField
@@ -7,12 +8,26 @@ from send_troops import TroopsOrder
 
 
 def builders_manager():
-    # Here you can set up your building queue.
 
-    asyncio.async(builder('?newdid=10999&', []))
+    # for the first iteration in a while loop
+    village_number = 1
+    village_url = os.environ[f'VILLAGE_URL_{village_number}']
+    buildings_queue = os.environ[f'BUILDINGS_QUEUE_{village_number}']
+
+    # while village_url is not None
+    while village_url:
+
+        buildings_queue = buildings_queue.split()
+        asyncio.async(builder(village_url, buildings_queue))
+
+        village_number += 1
+
+        village_url = os.environ.get(f'VILLAGE_URL_{village_number}')
+        buildings_queue = os.environ.get(f'BUILDINGS_QUEUE_{village_number}')
 
 
 async def builder(village_special_url, buildings_queue):
+
     if buildings_queue:
         upgrade_building = UpgradeBuilding(TOWN_URL + village_special_url, buildings_queue)
         await upgrade_building()

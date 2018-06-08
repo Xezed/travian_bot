@@ -48,9 +48,4 @@ class UpgradeBuilding(Builder):
             self.parser_location_to_build = BeautifulSoup(building_field_page, 'html.parser')
 
         else:
-            raise KeyError('Incorrect input of building name')
-
-
-
-
-
+            raise KeyError(f'Incorrect input of building name {building_to_build}')
