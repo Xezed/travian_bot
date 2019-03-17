@@ -1,6 +1,6 @@
 import os
 
-SERVER_URL = 'https://ts3.travian.co.uk/'
+SERVER_URL = 'https://ts3.lusobrasileiro.travian.com/'
 LOGIN_USERNAME = os.environ['LOGIN_USERNAME']
 LOGIN_PASSWORD = os.environ['LOGIN_PASSWORD']
 
