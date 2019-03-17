@@ -27,7 +27,6 @@ class Builder(ABC):
         check_adventure(self.session, self.parser_main_page)
         await self.check_queue()
         self.set_parser_location_to_build()
-
         successfully_built = await self.build()
 
         # Trying to build something until success then return True.
@@ -38,7 +37,6 @@ class Builder(ABC):
         try:
             link_to_build = self.parse_link_to_build()
             self.session.get(link_to_build)
-
         # Lack of resources raises ValueError. Catch here.
         except ValueError:
             seconds_to_enough = self.parse_seconds_to_enough_resources() + randint(15, 90)
@@ -87,7 +85,7 @@ class Builder(ABC):
     def parse_required_resources(self):
         """Return dictionary with resources which required to build smth"""
         required_resources = self.parser_location_to_build.find_all(class_='resources')
-        required_resources = {span.get('title').lower(): int(span.contents[1]) for span in required_resources}
+        required_resources = {span.get('title').lower(): int(span.contents[1].contents[0]) for span in required_resources}
 
         return required_resources
 
@@ -97,10 +95,31 @@ class Builder(ABC):
         clay = int(self.parse_resource('l2'))
         iron = int(self.parse_resource('l3'))
         crop = int(self.parse_resource('l4'))
-
-        resources_amount = {'lumber': lumber, 'clay': clay,
-                            'iron': iron, 'crop': crop}
+        consumed_crops = self.parse_consumption()
+        r_list = [lumber,clay,iron,crop,consumed_crops]
+        i = 0
+        resources_amount = {}
+        for r in self.parser_location_to_build.find_all("li",{"class":"stockBarButton"}):
+            resource_list_raw = r.find("a").get("title").split("||")
+            resource_list_raw = resource_list_raw[0].split()
+            resource = resource_list_raw[0]
+            if len(resource_list_raw) > 1: resource += " "+resource_list_raw[1]
+            resource = resource.lower()
+            resources_amount[resource] = r_list[i]
+            i += 1
         return resources_amount
+
+    def parse_consumption(self):
+        consumed_crops = None
+        for raw in self.parser_location_to_build.find_all("script"):
+            for l in raw:
+                if "production" in l:
+                    raw_dict = re.split(',|}',"".join("".join(l.strip()[:-1].split("=")[1].split("\n        ")).strip()[:-1]))
+                    for r in raw_dict:
+                        r = r.split(":")
+                        if r[0] == '"l5"':
+                            consumed_crops = int(r[1])
+        return consumed_crops
 
     def parse_resource(self, id):
         """Takes id of resource-tag in html and return amount of this resource"""
@@ -108,6 +127,7 @@ class Builder(ABC):
         resource = self.parser_main_page.find(id=id).text
         resource = resource.replace('.', '')
         resource = resource.replace(',', '')
+        resource = resource.replace(' ','').strip()
 
         amount = pattern.search(resource)
         amount = amount.group(0)
@@ -116,7 +136,6 @@ class Builder(ABC):
 
     def parse_seconds_to_enough_resources(self):
         """Return time in seconds after which will be enough resources to build smth."""
-
         # TODO handle extend granary/warehouse status
         parsed_class = self.parser_location_to_build.find_all(class_='hide')[0]
 
