@@ -24,22 +24,18 @@ class UpgradeBuilding(Builder):
 
     def parse_buildings(self):
         """Return all buildings and related links"""
-
-        buildings = self.parser_main_page.find_all('area')
+        buildings = self.parser_main_page.find_all(class_='good')
         building_links = {}
-
         for building in buildings:
-            alt_attr = building.get('alt')
-            first_word = re.match(r'^\w+', alt_attr).group(0)
-            link = building.get('href')
-            building_links[first_word] = link
-
+            title_attr = building.get('title')
+            name = title_attr.partition(" <span")[0] #Gets the name of the building. I any language
+            link = building.get('onclick').split("'")[1]
+            building_links[name] = link
         return building_links
 
     def set_parser_location_to_build(self):
         building_to_build = self.queue[0]
         building_sites = self.parse_buildings()
-
         # If given building was found then set parser, else KeyError.
         if building_to_build in building_sites:
             link_to_building_field = SERVER_URL + building_sites[building_to_build]
